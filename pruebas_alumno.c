@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>  
 
-int comparar (const char *s, const char *r){
+int comparar (const void *s, const void *r){
 	return strcmp(s,r);
 }
 	
@@ -18,65 +18,59 @@ static void prueba_crear_heap_vacio()
 {
     heap_t* heap = heap_crear(NULL);
 
-    print_test("Prueba heap crear heap vacio", abb);
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-    print_test("Prueba abb obtener clave A, es NULL, no existe", !abb_obtener(abb, "A"));
-    print_test("Prueba abb pertenece clave A, es false, no existe", !abb_pertenece(abb, "A"));
-    print_test("Prueba abb borrar clave A, es NULL, no existe", !abb_borrar(abb, "A"));
+    print_test("Prueba heap crear heap vacio", heap);
+    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
+    print_test("Prueba heap obtener max, es NULL, no existe", !heap_ver_max(heap));
+    print_test("Prueba heap desencolar, es NULL, no se puede", !heap_desencolar(heap));
+    print_test("Prueba heap esta vacio es true", heap_esta_vacio(heap));
 
-    abb_destruir(abb);
+    heap_destruir(heap,NULL);
 }
-
-
 static void prueba_heap_encolar()
 {
-    abb_t* abb = abb_crear(comparar,NULL);
+    heap_t* heap = heap_crear(comparar);
 
-    char *clave1 = "perro", *valor1 = "guau";
-    char *clave2 = "gato", *valor2 = "miau";
-    char *clave3 = "vaca", *valor3 = "mu";
+    char *clave1 = "perro";
+    char *clave2 = "gato";
+    char *clave3 = "vaca";
 
-    /* Inserta 1 valor y luego lo borra */
-    print_test("Prueba abb insertar clave1", abb_guardar(abb, clave1, valor1));
-    print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb) == 1);
-    print_test("Prueba abb obtener clave1 es valor1", abb_obtener(abb, clave1) == valor1);
-    print_test("Prueba abb obtener clave1 es valor1", abb_obtener(abb, clave1) == valor1);
-    print_test("Prueba abb pertenece clave1, es true", abb_pertenece(abb, clave1));
-    print_test("Prueba abb borrar clave1, es valor1", abb_borrar(abb, clave1) == valor1);
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
+    /* Inserta 1 valor y luego lo desencola */
+    print_test("Prueba heap encolar clave1", heap_encolar(heap, clave1));
+    print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
+    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
+    print_test("Prueba heap ver maximo es clave1", heap_ver_max(heap) == clave1);
+    print_test("Prueba heap desencolar es clave1", heap_desencolar(heap) == clave1);
+    print_test("Prueba heap esta vacio es true", heap_esta_vacio(heap));
 
-    /* Inserta otros 2 valores y no los borra (se destruyen con el abb) */
-    print_test("Prueba abb insertar clave2", abb_guardar(abb, clave2, valor2));
-    print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb) == 1);
-    print_test("Prueba abb obtener clave2 es valor2", abb_obtener(abb, clave2) == valor2);
-    print_test("Prueba abb obtener clave2 es valor2", abb_obtener(abb, clave2) == valor2);
-    print_test("Prueba abb pertenece clave2, es true", abb_pertenece(abb, clave2));
+    /* Inserta otros 2 valores y no los borra (se destruyen con el heap) */
+    print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
+    print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
+    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
+    print_test("Prueba heap ver maximo es clave2", heap_ver_max(heap) == clave2);
+    
+	print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
+    print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
+    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
+    print_test("Prueba heap ver maximo sigue siendo clave2", heap_ver_max(heap) == clave2);
 
-    print_test("Prueba abb insertar clave3", abb_guardar(abb, clave3, valor3));
-    print_test("Prueba abb la cantidad de elementos es 2", abb_cantidad(abb) == 2);
-    print_test("Prueba abb obtener clave3 es valor3", abb_obtener(abb, clave3) == valor3);
-    print_test("Prueba abb obtener clave3 es valor3", abb_obtener(abb, clave3) == valor3);
-    print_test("Prueba abb pertenece clave3, es true", abb_pertenece(abb, clave3));
-
-    abb_destruir(abb);
+    heap_destruir(heap,NULL);
 }
-
 
 
 static void prueba_heap_desencolar()
 {
-    abb_t* abb = abb_crear(comparar,NULL);
+    heap_t* heap = heap_crear(comparar);
 
-    char *clave1 = "perro", *valor1 = "guau";
-    char *clave2 = "gato", *valor2 = "miau";
-    char *clave3 = "vaca", *valor3 = "mu";
+    char *clave1 = "perro";
+    char *clave2 = "gato";
+    char *clave3 = "vaca";
 
-    /* Inserta 3 valores y luego los borra */
-    print_test("Prueba abb insertar clave1", abb_guardar(abb, clave1, valor1));
-    print_test("Prueba abb insertar clave2", abb_guardar(abb, clave2, valor2));
-    print_test("Prueba abb insertar clave3", abb_guardar(abb, clave3, valor3));
+    /* Inserta 3 valores y luego los desencola */
+    print_test("Prueba heap encolar clave1", heap_encolar(heap, clave1));
+    print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
+    print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
 
-    /* Al borrar cada elemento comprueba que ya no está pero los otros sí. */
+    /* Al desencolar cada elemento comprueba que ya no está pero los otros sí. */
     print_test("Prueba abb pertenece clave3, es verdadero", abb_pertenece(abb, clave3));
     print_test("Prueba abb borrar clave3, es valor3", abb_borrar(abb, clave3) == valor3);
     print_test("Prueba abb borrar clave3, es NULL", !abb_borrar(abb, clave3));
@@ -98,7 +92,21 @@ static void prueba_heap_desencolar()
     print_test("Prueba abb obtener clave2, es NULL", !abb_obtener(abb, clave2));
     print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
 
-    abb_destruir(abb);
+    heap_destruir(heap,NULL);
+}
+
+static void prueba_crear_heap_arr()
+{
+	char *arr[6] = {"perro","caballo","gato","vaca","leon","tigre"};
+	void *arreglo[6] = {arr,arr+1,arr+2,arr+3,arr+4,arr+5};
+	
+	heap_t *heap = heap_crear_arr(arreglo,6,comparar);
+	
+	printf("heap ver max es: %s\n", (char*)heap_ver_max(heap));
+	print_test("Prueba heap ver max es caballo", heap_ver_max(heap) == arreglo[1]);
+	
+	
+	heap_destruir(heap,NULL);
 }
 
 static void prueba_heap_clave_vacia()
@@ -212,7 +220,6 @@ static void prueba_heap_volumen(size_t largo, bool debug)
 
 }
 
-
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -224,9 +231,10 @@ void pruebas_heap_alumno()
     prueba_crear_heap_vacio();
     prueba_heap_encolar();
     prueba_heap_desencolar();
-    prueba_heap_clave_vacia();
+    prueba_crear_heap_arr();
+    /*prueba_heap_clave_vacia();
     prueba_heap_valor_null();
     prueba_heap_clave_null();
-    prueba_heap_volumen(200, true);
+    prueba_heap_volumen(200, true);*/
 }
 

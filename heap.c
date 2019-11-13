@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+//#include <string.h>
 #include "heap.h"
 //#include "cola.h"
 
 #define TAM 31
-#define AGRANDAR 2
-#define ACHICAR 1/4
+#define RED 2
+#define MIN 1/4
 
 
 struct heap{
@@ -12,7 +14,7 @@ struct heap{
     size_t cant;
     size_t tam;
     cmp_func_t cmp;
-} heap_t;
+};
 
 
 /* Función de heapsort genérica. Esta función ordena mediante heap_sort
@@ -29,43 +31,54 @@ void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
  *                 FUNCIONES AUXILIARES DEL HEAP                  *     
  ******************************************************************/
 
-void swap (void *x, void *y) {
-	void aux = *x ;
-	*x = *y ;
-	*y = aux ;
+void swap(void **a, void **b){
+    void **aux = *a;
+    *a = *b;
+    *b = aux;
+}
+
+size_t max(heap_t *heap, size_t izq, size_t der){
+	if(heap->cmp(heap->datos[izq],heap->datos[der]) < 0){
+		return der;
+	}else{
+		return izq;
+	}
 }
 
 bool es_heap(heap_t *heap, size_t padre){
-	if(heap->cmp(heap->datos[padre],heap->datos[2*padre+2]) < 0 || heap->cmp(heap->datos[padre],heap->datos[2*padre+1]) < 0){
+	if(!heap->datos+(2*padre+1)){
+		return true;
+	}else if(!heap->datos[2*padre+2] && heap->cmp(heap->datos[padre],heap->datos[2*padre+1]) < 0){
+		return false;
+	}else if(heap->cmp(heap->datos[padre],heap->datos[2*padre+1]) < 0 || heap->cmp(heap->datos[padre],heap->datos[2*padre+2]) < 0){
 		return false;
 	}
 	return true;
 }
 
 void upheap(heap_t *heap, size_t pos){
-	int padre = (pos-1)/2;
-	if(es_heap(heap,padre)return;
-	swap(pos,padre);
+	size_t padre = (pos-1)/2;
+	if(es_heap(heap,padre))return;
+	swap(heap->datos+pos,heap->datos+padre);
 	upheap(heap,padre);
 }
 
 void downheap(heap_t *heap, size_t pos){
 	if(es_heap(heap,pos))return;
-	size_t padre;
-	if(heap->cmp(heap->datos[2*pos+1],heap->datos[2*pos+2]) > 0){
-		padre = 2*pos+1;
-		swap(heap->datos[pos],heap->datos[padre]);
-	}else{
-		padre = 2*pos+2;
-		swap(heap->datos[pos],heap->datos[padre]);
-	}
+	size_t padre = max(heap,2*pos+1,2*pos+2);
+	swap(heap->datos+pos,heap->datos+padre);
 	downheap(heap,padre);
 }
 
-void heapify(){
+void heapify(heap_t *heap, void *arreglo[], size_t n){
 	
+	heap->datos = arreglo;	
+	downheap(heap,(n/2)-1);
 }
 
+bool heap_redimension(heap_t *heap, size_t TAM_NUEVO){
+	return true;
+}
 
 /*
  * Implementación de un TAD cola de prioridad, usando un max-heap.
@@ -106,20 +119,16 @@ heap_t *heap_crear(cmp_func_t cmp){
 */
 heap_t *heap_crear_arr(void *arreglo[], size_t n, cmp_func_t cmp){
 	
-	heap_t *heap = malloc(sizeof(heap_t));
+	heap_t *heap = heap_crear(cmp);
 	if(!heap)return NULL;
 	
-	heap->datos = malloc(TAM*sizeof(void*));
-	if(!heap->datos){
-		free(heap);
-		return NULL;
+	if(n > heap->tam){
+		if(!heap_redimension(heap,2*n))return NULL;
 	}
+	heapify(heap,arreglo,n);
 	
-	//heapify
+	heap->cant = n;
 	
-	heap->tam = TAM;
-	heap->cmp = cmp;
-	heap->cant = n;	
 	return heap;
 }
 
@@ -135,7 +144,7 @@ void heap_destruir(heap_t *heap, void destruir_elemento(void *e)){
 }
 
 size_t heap_cantidad(const heap_t *heap){
-	return heap->cantidad;
+	return heap->cant;
 }
 
 bool heap_esta_vacio(const heap_t *heap){
@@ -144,8 +153,8 @@ bool heap_esta_vacio(const heap_t *heap){
 	
 bool heap_encolar(heap_t *heap, void *elem){
 	if(!elem)return false;
-	if(heap->cant == TAM){
-		if(!heap_redimension(heap,AGRANDAR*heap->tam)return false;
+	if(heap->cant == heap->tam){
+		if(!heap_redimension(heap,RED*heap->tam))return false;
 	}
 	heap->datos[heap->cant] = elem;
 	upheap(heap,heap->cant);
@@ -160,11 +169,11 @@ void *heap_ver_max(const heap_t *heap){
 
 void *heap_desencolar(heap_t *heap){
 	if(heap_esta_vacio(heap))return NULL;
-	if(heap->cant <= heap->tam/2){
-		if(!heap_redimension(heap,heap->tam*ACHICAR)return NULL;
+	if(heap->cant <= heap->tam*MIN){
+		if(!heap_redimension(heap,heap->tam/RED))return NULL;
 	}
 	heap->cant--;
-	swap(heap->datos[0],heap->datos[heap->cant]);
+	swap(heap->datos,heap->datos+heap->cant);
 	void *dato = heap->datos[heap->cant];
 	downheap(heap,0);
 	return dato;
