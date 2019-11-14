@@ -9,6 +9,12 @@
 int comparar (const void *s, const void *r){
 	return strcmp(s,r);
 }
+
+int cmp_n(const void *a, const void *b){
+	if(*(int*)a < *(int*)b)return -1;
+	if(*(int*)a > *(int*)b)return 1;
+	return 0;
+}
 	
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
@@ -26,13 +32,14 @@ static void prueba_crear_heap_vacio()
 
     heap_destruir(heap,NULL);
 }
+
 static void prueba_heap_encolar()
 {
     heap_t* heap = heap_crear(comparar);
 
-    char *clave1 = "perro";
-    char *clave2 = "gato";
-    char *clave3 = "vaca";
+    void *clave1 = "perro";
+    void *clave2 = "gato";
+    void *clave3 = "vaca";
 
     /* Inserta 1 valor y luego lo desencola */
     print_test("Prueba heap encolar clave1", heap_encolar(heap, clave1));
@@ -43,7 +50,7 @@ static void prueba_heap_encolar()
     print_test("Prueba heap esta vacio es true", heap_esta_vacio(heap));
 
     /* Inserta otros 2 valores y no los borra (se destruyen con el heap) */
-    print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
+	print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
     print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
     print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
     print_test("Prueba heap ver maximo es clave2", heap_ver_max(heap) == clave2);
@@ -51,175 +58,138 @@ static void prueba_heap_encolar()
 	print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
     print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
     print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
+    printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
+	
     print_test("Prueba heap ver maximo sigue siendo clave2", heap_ver_max(heap) == clave2);
 
     heap_destruir(heap,NULL);
 }
 
+/* Pruebas con algunos datos*/
+static void pruebas_heap_algunos_datos()
+{
+    printf("\nINICIO DE PRUEBAS CON ALGUNOS DATOS\n");
+    
+    heap_t* heap = heap_crear(comparar);
+    
+    /*Pruebo que no se puede encolar el elemento NULL*/
+    print_test("Pruebo que no se puede encolar el elemento NULL", !heap_encolar(heap,NULL));
+    print_test("Prueba el heap sigue estando vacio", heap_esta_vacio(heap) );
+    print_test("Pruebo que no se puede desencolar", !heap_desencolar(heap));
+	
+	void *valor[6] = {"perro","gorila","gato","vaca","foca","caballo"};
+	
+    /*Pruebo que puedo encolar y desencolar un mismo elemento*/
+    print_test("Pruebo encolar un elemento", heap_encolar(heap,valor[0]));
+    print_test("Prueba ver_max devuelve el mismo elemento", heap_ver_max(heap) == valor[0] );
+    print_test("Prueba al desencolar tambien me devuelve el elemento", heap_desencolar(heap) == valor[0] );
+    /*Pruebo que al desencolar hasta que este vacío, se comporta como recien creado*/
+    print_test("Prueba desencolar el heap ya desencolado devuelve NULL", !heap_desencolar(heap));
+	print_test("Prueba ver_max también devuelve NULL", !heap_ver_max(heap));
+	print_test("Prueba el heap esta vacio", heap_esta_vacio(heap) );
+
+	printf("Pruebas con 6 elementos\n");
+	/*Creo un flag para saber si se pudieron encolar los valores*/
+	bool result = true;
+	
+	/*Pruebo que se hayan encolado los 6 elementos*/	
+	for(int i = 0 ; i < 6 ; i++ ){
+		result = true;
+		if(!heap_encolar(heap,valor[i])){
+			result = false ;
+		}
+		print_test("Se pudo encolar el valor", result);	
+		
+	}
+	printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
+	print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == valor[5]); 
+	print_test("Prueba heap la cantidad de elementos es 6", heap_cantidad(heap) == 6);
+	
+	heap_destruir(heap,NULL);
+}
 
 static void prueba_heap_desencolar()
 {
     heap_t* heap = heap_crear(comparar);
 
-    char *clave1 = "perro";
-    char *clave2 = "gato";
-    char *clave3 = "vaca";
+    char *clave1 = "River";
+    char *clave2 = "Lanus";
+    char *clave3 = "Independiente";
 
     /* Inserta 3 valores y luego los desencola */
     print_test("Prueba heap encolar clave1", heap_encolar(heap, clave1));
     print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
     print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
-
-    /* Al desencolar cada elemento comprueba que ya no está pero los otros sí. */
-    print_test("Prueba abb pertenece clave3, es verdadero", abb_pertenece(abb, clave3));
-    print_test("Prueba abb borrar clave3, es valor3", abb_borrar(abb, clave3) == valor3);
-    print_test("Prueba abb borrar clave3, es NULL", !abb_borrar(abb, clave3));
-    print_test("Prueba abb pertenece clave3, es falso", !abb_pertenece(abb, clave3));
-    print_test("Prueba abb obtener clave3, es NULL", !abb_obtener(abb, clave3));
-    print_test("Prueba abb la cantidad de elementos es 2", abb_cantidad(abb) == 2);
-
-    print_test("Prueba abb pertenece clave1, es verdadero", abb_pertenece(abb, clave1));
-    print_test("Prueba abb borrar clave1, es valor1", abb_borrar(abb, clave1) == valor1);
-    print_test("Prueba abb borrar clave1, es NULL", !abb_borrar(abb, clave1));
-    print_test("Prueba abb pertenece clave1, es falso", !abb_pertenece(abb, clave1));
-    print_test("Prueba abb obtener clave1, es NULL", !abb_obtener(abb, clave1));
-    print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb) == 1);
-
-    print_test("Prueba abb pertenece clave2, es verdadero", abb_pertenece(abb, clave2));
-    print_test("Prueba abb borrar clave2, es valor2", abb_borrar(abb, clave2) == valor2);
-    print_test("Prueba abb borrar clave2, es NULL", !abb_borrar(abb, clave2));
-    print_test("Prueba abb pertenece clave2, es falso", !abb_pertenece(abb, clave2));
-    print_test("Prueba abb obtener clave2, es NULL", !abb_obtener(abb, clave2));
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-
+    
+printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
+	
+    /* Al desencolar cada elemento comprueba que el maximo es distinto. */
+	print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == clave3); 
+	print_test("Prueba heap desencolar, es el maximo anterior", heap_desencolar(heap) == clave3);
+    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
+	
+    print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == clave2); 
+	print_test("Prueba heap desencolar, es el maximo anterior", heap_desencolar(heap) == clave2);
+    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
+    
+    print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == clave1); 
+	print_test("Prueba heap desencolar, es el maximo anterior", heap_desencolar(heap) == clave1);
+    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
+    print_test("Prueba heap esta vacio es true", heap_esta_vacio(heap));
+    
+    /* Al estar vacio, no se puede seguir desencolando, pero al volver a encolar se comporta como recién creado*/
+    print_test("Prueba heap desencolar, es NULL", !heap_desencolar(heap));
+    print_test("Prueba se puede encolar de vuelta clave1", heap_encolar(heap,clave1));
+    print_test("Prueba heap ver max es clave1", heap_ver_max(heap) == clave1);
+    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
+    print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
+	print_test("Prueba se puede encolar de vuelta clave2", heap_encolar(heap,clave2));
+	print_test("Prueba se puede encolar de vuelta clave3", heap_encolar(heap,clave3));
+    print_test("Prueba heap ver max es clave3", heap_ver_max(heap) == clave3);
+    print_test("Prueba heap la cantidad de elementos es 3", heap_cantidad(heap) == 3);
+    
     heap_destruir(heap,NULL);
 }
 
+
 static void prueba_crear_heap_arr()
 {
-	char *arr[6] = {"perro","caballo","gato","vaca","leon","tigre"};
-	void *arreglo[6] = {arr,arr+1,arr+2,arr+3,arr+4,arr+5};
+	void *arreglo[6] = {"zorro","caballo","gato","vaca","leon","ballena"};
 	
 	heap_t *heap = heap_crear_arr(arreglo,6,comparar);
 	
-	printf("heap ver max es: %s\n", (char*)heap_ver_max(heap));
-	print_test("Prueba heap ver max es caballo", heap_ver_max(heap) == arreglo[1]);
 	
+	
+	printf("heap ver max es: %s\n", (char*)heap_ver_max(heap));
+	print_test("Prueba heap ver max es ballena", heap_ver_max(heap) == arreglo[5]);//strcmp((char*)heap_ver_max(heap),"ballena") == 0);
+	print_test("Prueba heap la cantidad de elementos es 6", heap_cantidad(heap) == 6);
+	
+	arreglo[5] = "raton";
+	printf("Max es: %s\n", (char*)heap_ver_max(heap));
+	print_test("Prueba no se guarda el mismo puntero",strcmp((char*)heap_ver_max(heap),"ballena") == 0);
+    
+	/*for(size_t y = 0; y < 6; y++){
+		printf("el %ld es: %s\n",y,(char*)heap_desencolar(heap));
+	}*/
 	
 	heap_destruir(heap,NULL);
 }
 
-static void prueba_heap_clave_vacia()
+static void prueba_heapsort()
 {
-    abb_t* abb = abb_crear(comparar,NULL);
-
-    char *clave = "", *valor = "";
-
-    print_test("Prueba abb insertar clave vacia", abb_guardar(abb, clave, valor));
-    print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb) == 1);
-    print_test("Prueba abb obtener clave vacia es valor", abb_obtener(abb, clave) == valor);
-    print_test("Prueba abb pertenece clave vacia, es true", abb_pertenece(abb, clave));
-    print_test("Prueba abb borrar clave vacia, es valor", abb_borrar(abb, clave) == valor);
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-
-    abb_destruir(abb);
+	
+	int n[7] = {4,7,9,2,3,7,0};
+	void *p[7] = {n,n+1,n+2,n+3,n+4,n+5,n+6};
+	/*
+	void *p[7] = {"rusia","nigeria","tailandia","peru","brasil","canada","alemania"};*/
+	heap_sort(p,7,comparar);
+	
+	
+	for(int i = 0; i < 7; i++){
+		printf("%d elemento: %d\n",i+1,*(int*)p[i]);
+	}
+	
 }
-
-static void prueba_heap_valor_null()
-{
-    abb_t* abb = abb_crear(comparar,NULL);
-
-    char *clave = "", *valor = NULL;
-
-    /* Inserta 1 valor y luego lo borra */
-    print_test("Prueba abb insertar clave vacia valor NULL", abb_guardar(abb, clave, valor));
-    print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb) == 1);
-    print_test("Prueba abb obtener clave vacia es valor NULL", abb_obtener(abb, clave) == valor);
-    print_test("Prueba abb pertenece clave vacia, es true", abb_pertenece(abb, clave));
-    print_test("Prueba abb borrar clave vacia, es valor NULL", abb_borrar(abb, clave) == valor);
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-
-    abb_destruir(abb);
-}
-
-static void prueba_heap_clave_null()
-{
-    abb_t* abb = abb_crear(comparar,NULL);
-
-    char *clave = NULL, *valor = "NADA";
-
-    /* Inserta 1 valor y luego lo borra */
-    print_test("Prueba abb insertar clave NULL es false", !abb_guardar(abb, clave, valor));
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-    print_test("Prueba abb obtener clave NULL es NULL", abb_obtener(abb, clave) == NULL);
-    print_test("Prueba abb pertenece clave NULL, es false", !abb_pertenece(abb, clave));
-    print_test("Prueba abb borrar clave NULL es NULL", abb_borrar(abb, clave) == NULL);
-    print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-
-    abb_destruir(abb);
-}
-
-
-static void prueba_heap_volumen(size_t largo, bool debug)
-{
-    abb_t* abb = abb_crear(comparar,NULL);
-
-    const size_t largo_clave = 10;
-    char (*claves)[largo_clave] = malloc(largo * largo_clave);
-
-    unsigned* valores[largo];
-
-    /* Inserta 'largo' parejas en el abb */
-    bool ok = true;
-    for (unsigned i = 0; i < largo; i++) {
-        valores[i] = malloc(sizeof(int));
-        sprintf(claves[i], "%08d", i);
-        *valores[i] = i;
-        ok = abb_guardar(abb, claves[i], valores[i]);
-        if (!ok) break;
-    }
-
-    if (debug) print_test("Prueba abb almacenar muchos elementos", ok);
-    if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
-
-    /* Verifica que devuelva los valores correctos */
-    for (size_t i = 0; i < largo; i++) {
-        ok = abb_pertenece(abb, claves[i]);
-        if (!ok) break;
-        ok = abb_obtener(abb, claves[i]) == valores[i];
-        if (!ok) break;
-    }
-
-    if (debug) print_test("Prueba abb pertenece y obtener muchos elementos", ok);
-    if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
-
-    /* Verifica que borre y devuelva los valores correctos */
-    for (size_t i = 0; i < largo; i++) {
-        ok = abb_borrar(abb, claves[i]) == valores[i];
-        if (!ok) break;
-    }
-
-    if (debug) print_test("Prueba abb borrar muchos elementos", ok);
-    if (debug) print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
-
-    /* Destruye el abb y crea uno nuevo que sí libera */
-    abb_destruir(abb);
-    abb = abb_crear(comparar,free);
-
-    /* Inserta 'largo' parejas en el abb */
-    ok = true;
-    for (size_t i = 0; i < largo; i++) {
-        ok = abb_guardar(abb, claves[i], valores[i]);
-        if (!ok) break;
-    }
-
-    free(claves);
-
-    /* Destruye el abb - debería liberar los enteros */
-    abb_destruir(abb);
-
-}
-
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -230,11 +200,11 @@ void pruebas_heap_alumno()
     /* Ejecuta todas las pruebas unitarias. */
     prueba_crear_heap_vacio();
     prueba_heap_encolar();
+	pruebas_heap_algunos_datos();
     prueba_heap_desencolar();
     prueba_crear_heap_arr();
-    /*prueba_heap_clave_vacia();
-    prueba_heap_valor_null();
-    prueba_heap_clave_null();
+    prueba_heapsort();
+    /*pruebas_destruir_segun_funcion();
     prueba_heap_volumen(200, true);*/
 }
 
