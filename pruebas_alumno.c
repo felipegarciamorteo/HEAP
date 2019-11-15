@@ -6,8 +6,9 @@
 #include <string.h>
 #include <unistd.h>  
 
+/*Casteo e invierto strcmp para ordenar alfabeticamente*/
 int comparar (const void *s, const void *r){
-	return strcmp(s,r);
+	return strcmp(r,s);
 }
 
 int cmp_n(const void *a, const void *b){
@@ -58,19 +59,14 @@ static void prueba_heap_encolar()
 	print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
     print_test("Prueba heap esta vacio es false", !heap_esta_vacio(heap));
     print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
-    printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
-	
     print_test("Prueba heap ver maximo sigue siendo clave2", heap_ver_max(heap) == clave2);
 
     heap_destruir(heap,NULL);
 }
 
-/* Pruebas con algunos datos*/
 static void pruebas_heap_algunos_datos()
 {
-    printf("\nINICIO DE PRUEBAS CON ALGUNOS DATOS\n");
-    
-    heap_t* heap = heap_crear(comparar);
+     heap_t* heap = heap_crear(comparar);
     
     /*Pruebo que no se puede encolar el elemento NULL*/
     print_test("Pruebo que no se puede encolar el elemento NULL", !heap_encolar(heap,NULL));
@@ -88,7 +84,6 @@ static void pruebas_heap_algunos_datos()
 	print_test("Prueba ver_max también devuelve NULL", !heap_ver_max(heap));
 	print_test("Prueba el heap esta vacio", heap_esta_vacio(heap) );
 
-	printf("Pruebas con 6 elementos\n");
 	/*Creo un flag para saber si se pudieron encolar los valores*/
 	bool result = true;
 	
@@ -97,12 +92,9 @@ static void pruebas_heap_algunos_datos()
 		result = true;
 		if(!heap_encolar(heap,valor[i])){
 			result = false ;
-		}
-		print_test("Se pudo encolar el valor", result);	
-		
+		}		
 	}
-	printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
-	print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == valor[5]); 
+	print_test("Prueba se encolaron los valores y heap ver max es el correcto",result && heap_ver_max(heap) == valor[5]); 
 	print_test("Prueba heap la cantidad de elementos es 6", heap_cantidad(heap) == 6);
 	
 	heap_destruir(heap,NULL);
@@ -121,9 +113,7 @@ static void prueba_heap_desencolar()
     print_test("Prueba heap encolar clave2", heap_encolar(heap, clave2));
     print_test("Prueba heap encolar clave3", heap_encolar(heap, clave3));
     
-printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
-	
-    /* Al desencolar cada elemento comprueba que el maximo es distinto. */
+	/* Al desencolar cada elemento comprueba que el maximo es distinto. */
 	print_test("Prueba heap ver max es el correcto", heap_ver_max(heap) == clave3); 
 	print_test("Prueba heap desencolar, es el maximo anterior", heap_desencolar(heap) == clave3);
     print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
@@ -151,6 +141,65 @@ printf("El maximo es:%s\n", (char*)heap_ver_max(heap));
     heap_destruir(heap,NULL);
 }
 
+static void prueba_heap_volumen()
+{
+	
+	heap_t* heap = heap_crear(cmp_n);
+	print_test("Prueba se pudo crear el heap", heap);
+	 
+   	/*Creo y defino un vector de gran tamaño para encolar sus valores en el heap*/
+	int vec[10000]; 
+	/*Creo un flag para saber si se pudieron encolar los valores */
+	bool result = true;
+	/*Pruebo que se hayan encolado los 10000 elementos respetando el maximo*/	
+	for( int i = 0 ; i < 10000 ; i++ ){
+		vec[i] = i ;
+		if( !heap_encolar(heap,vec+i) ){
+			result = false ;
+		}
+		if( *(int*)heap_ver_max(heap) != i ){
+			result = false ;
+		}	
+	}
+	/*Ejecuto la prueba para ver si mi flag se ha modificado por algo de la prueba*/
+	print_test("Se pudo encolar 10000 elementos al heap y maximo valor en cada paso correcto", result);
+
+    /*Inicio el flag de vuelta, por si en la prueba anterior esta lo ha modificado*/
+    result = true;
+    /*Pruebo que el invariante del heap se cumple al desencolar los 10000 elementos */ 
+	for( int i = 9999 ; i >= 0; i--){ 
+		if( *(int*)heap_desencolar(heap) !=  i){
+			result = false ;
+		}
+		if((i != 0)&&(*(int*)heap_ver_max(heap) != i-1)){
+			result = false ;
+		}	 
+	}
+	
+	/*Ejecuto la prueba para ver si mi flag se ha modificado por algo de la prueba*/
+	print_test("Se pudo desencolar los 10000 elementos sin perder el invariante del heap", result);
+	
+	heap_destruir(heap,NULL);
+}
+
+static void pruebas_destruir_segun_funcion()
+{
+	heap_t* heap = heap_crear(cmp_n);
+	
+	/*Pido memoria a malloc para valor y luego encolarlo*/
+	bool result = true;
+	for( int i = 5 ; i >= 0 ; i-- ){
+		int* valor = malloc(sizeof(int));
+		*valor = i;
+		if( !heap_encolar(heap,valor)){
+			result = false ;
+		}
+	}
+	print_test("Prueba encolar elementos dinamicos", result);
+	/*Destruyo el heap pasandole free */
+	heap_destruir(heap,free);
+	print_test("Prueba el heap ha sido destruido",true);
+}
 
 static void prueba_crear_heap_arr()
 {
@@ -158,38 +207,32 @@ static void prueba_crear_heap_arr()
 	
 	heap_t *heap = heap_crear_arr(arreglo,6,comparar);
 	
-	
-	
-	printf("heap ver max es: %s\n", (char*)heap_ver_max(heap));
-	print_test("Prueba heap ver max es ballena", heap_ver_max(heap) == arreglo[5]);//strcmp((char*)heap_ver_max(heap),"ballena") == 0);
+	print_test("Prueba heap ver max es ballena", heap_ver_max(heap) == arreglo[5]);
 	print_test("Prueba heap la cantidad de elementos es 6", heap_cantidad(heap) == 6);
 	
 	arreglo[5] = "raton";
-	printf("Max es: %s\n", (char*)heap_ver_max(heap));
 	print_test("Prueba no se guarda el mismo puntero",strcmp((char*)heap_ver_max(heap),"ballena") == 0);
     
-	/*for(size_t y = 0; y < 6; y++){
-		printf("el %ld es: %s\n",y,(char*)heap_desencolar(heap));
-	}*/
-	
 	heap_destruir(heap,NULL);
 }
 
 static void prueba_heapsort()
 {
 	
-	int n[7] = {4,7,9,2,3,7,0};
+	int n[7] = {4,7,9,2,3,8,0};
 	void *p[7] = {n,n+1,n+2,n+3,n+4,n+5,n+6};
-	/*
-	void *p[7] = {"rusia","nigeria","tailandia","peru","brasil","canada","alemania"};*/
-	heap_sort(p,7,comparar);
+	void *p_ord[7] = {n+6,n+3,n+4,n,n+1,n+5,n+2};//arreglo p ordenado de menor a mayor
+
+	heap_sort(p,7,cmp_n);
 	
 	
 	for(int i = 0; i < 7; i++){
-		printf("%d elemento: %d\n",i+1,*(int*)p[i]);
+		printf("Prueba heapsort elemento %d ",i);
+		print_test("correcto",*(int*)p[i] == *(int*)p_ord[i]);
 	}
 	
 }
+
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -202,9 +245,9 @@ void pruebas_heap_alumno()
     prueba_heap_encolar();
 	pruebas_heap_algunos_datos();
     prueba_heap_desencolar();
-    prueba_crear_heap_arr();
+    prueba_heap_volumen();
+    pruebas_destruir_segun_funcion();
+    prueba_crear_heap_arr();    
     prueba_heapsort();
-    /*pruebas_destruir_segun_funcion();
-    prueba_heap_volumen(200, true);*/
 }
 
